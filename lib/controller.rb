@@ -1,4 +1,5 @@
 require 'json'
+require 'date'
 require_relative './models/user'
 require_relative './models/location'
 require_relative './models/order'
@@ -80,7 +81,7 @@ module GoCLI
       clear_screen(opts)
       form = View.view_profile(opts)
 
-
+      
       case form[:steps].last[:option].to_i
       when 1
         # Step 4.1.1
@@ -111,6 +112,7 @@ module GoCLI
         user.save!
 
         form[:user] = user
+        view_profile(form)
         form
       when 2
         view_profile(form)
@@ -125,18 +127,87 @@ module GoCLI
       clear_screen(opts)
       form = View.order_goride(opts)
       form[:location_data]=Location.location_data
-      p form
-      
-      
-      
-      
-      
+      #p form[:start]
+      point_1 = Hash.new(0)
+      point_2 = Hash.new(0)
+
+      location_length = nil
+
+      form[:location_data].each do |x|
+        if x.rassoc(form[:start])
+          point_1 = x
+        end
+
+        if x.rassoc(form[:finish])
+          point_2 = x
+        end
+      end
+
+      point_1_num = point_1.values[1]
+      point_2_num = point_2.values[1]
+
+      if (point_1.values == []) || (point_2.values == []) 
+        form[:flash_msg] = "Sorry, the route is unavailable"
+        order_goride(form)
+
+      else
+        location_length = Math.sqrt(((point_2_num[0] - point_1_num[0])**2) + ((point_2_num[1] - point_1_num[1])**2)).to_f
+        form[:est_price] = (location_length * 1500).to_i
+       # d = DateTime.parse
+        form[:timestamp] = DateTime.now
+        #order_goride_confirm(form)
+        order_goride_confirm(form)
+      end
+
+      form
+
     end
 
     # TODO: Complete order_goride_confirm method
     # This will be invoked after user finishes inputting data in order_goride method
-    def order_goride_confirm(opts = {})
 
+    def order_goride_confirm(opts)
+      clear_screen(opts)  
+      form = View.order_goride_confirm(opts)
+      
+      case form[:steps].last[:option].to_i
+      when 1
+        order = Order.new(
+        timestamp: form[:timestamp],
+        origin: form[:start],
+        destination: form[:finish],
+        est_price: form[:est_price]
+        )
+        order.save!
+
+        form[:order] = order
+        form[:flash_msg] = "Have a nice day!"
+        main_menu(form)
+        form
+      when 2
+        order_goride(form)
+
+      when 3
+        main_menu(form)
+      else 
+        form[:flash_msg] = "Wrong option entered, please retry."
+        order_goride_confirm(form)
+      end
+    end
+
+    def view_order_history(opts = {})
+      clear_screen(opts)
+      form = View.view_order_history(opts)
+
+      
+
+      case form[:steps].last[:option].to_i
+      when 1
+        main_menu(form)
+      else
+        form[:flash_msg] = "Wrong option entered, please retry."
+        view_order_history(form)
+      end
     end
 
     protected

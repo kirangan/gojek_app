@@ -55,7 +55,7 @@ module GoCLI
       puts '2. Order Go-Ride'
       puts '3. View Order History'
       puts '4. Exit'
-
+      puts ''
       print 'Enter your option: '
       form[:steps] << {id: __method__, option: gets.chomp}
 
@@ -124,23 +124,47 @@ module GoCLI
 
       form[:steps] << {id: __method__}
       form
-
+      
     end
 
     # TODO: Complete order_goride_confirm method
     # This is invoked after user finishes inputting data in order_goride method
     def self.order_goride_confirm(opts = {})
-    form = opts
+      form = opts
       
-      puts ' OConfirm orderrder Go-Ride'
-      puts form[:location_data]
+      puts 'Confirm order Go-Ride'
 
+      puts "Timestamp: #{form[:timestamp]}"
+      puts "Origin: #{form[:start]}"
+      puts "Destination: #{form[:finish]}"
+      puts "Price: #{form[:est_price]}"
+      puts ''
+
+      puts '1. Order'
+      puts '2. Repeat'
+      puts '3. Back to the main menu'
+
+      print 'Enter your option: '
+      form[:steps] << {id: __method__, option: gets.chomp}
       form
-
     end
 
     # TODO: Complete view_order_history method
     def self.view_order_history(opts = {})
+      form = opts
+      puts 'History'
+      puts ''
+      puts "Timestamp: #{form[:order].timestamp}"
+      puts "Origin: #{form[:order].origin}"
+      puts "Destination: #{form[:order].destination}"
+      puts "Price: #{form[:order].est_price}"
+      puts ''
+      
+      puts '1. Back'
+
+      print 'Enter your option: '
+      form[:steps] << {id: __method__, option: gets.chomp}
+      form
     end
   end
 end

@@ -13,12 +13,7 @@ module GoCLI
       file = File.read("#{File.expand_path(File.dirname(__FILE__))}/../../data/locations.json")
       data = JSON.parse(file)
       data
-    
-
     end
-    def self.point_location
-      
-      
-    end  
+    
   end
 end
