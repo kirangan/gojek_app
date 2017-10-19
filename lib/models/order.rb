@@ -10,34 +10,23 @@ module GoCLI
 			@timestamp = opts[:timestamp] || ''
 			@origin = opts[:origin] || ''
 			@destination = opts[:destination] || ''
-			@est_price = opts[:est_price] || ''
-     
-		end
-		
-		def self.add_order
-      file = File.read("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json")
-      data = JSON.parse(file)
+			@est_price = opts[:est_price] || ''     
+		end	
 
-      self.new(
-        timestamp: data['timestamp'],
-        origin: data['origin'],
-        destination: data['destination'],
-        est_price: data['est_price']
-      )
-    end	
-
-    def self.view_order
-      file = File.read("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json")
-      data = JSON.parse(file)
-      data
-    end	
-
-    def save!
-    
+    def save!    
       # TODO: Add validation before writing user data to file
+      #return [] if File.file?("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json")
+      order_a = []
+      file = File.read("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json")
+      order_a = JSON.parse(file)
+      p order_a
+
       order = {timestamp: @timestamp, origin: @origin, destination: @destination, est_price: @est_price}
-      File.open("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json", "a") do |f|
-        f.write JSON.generate(order)
+
+      order_a << order
+
+      File.open("#{File.expand_path(File.dirname(__FILE__))}/../../data/orders.json", "w") do |f|
+        f.write JSON.generate(order_a)
       end
 
       		

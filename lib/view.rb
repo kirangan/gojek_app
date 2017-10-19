@@ -154,11 +154,7 @@ module GoCLI
       form = opts
       puts 'History'
       puts ''
-      puts "Timestamp: #{form[:order].timestamp}"
-      puts "Origin: #{form[:order].origin}"
-      puts "Destination: #{form[:order].destination}"
-      puts "Price: #{form[:order].est_price}"
-      puts ''
+      #puts form
       
       puts '1. Back'
 
