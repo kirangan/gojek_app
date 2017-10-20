@@ -29,17 +29,23 @@ module GoCLI
     end
 
     # TODO: Add your validation method here
-    def validate
-    
+    def validates
+      temp = ""
+      if (@name == '') || (@email == '') || (@phone == '') || (@password == '')
+        temp = "false"
+      else
+        temp = "true"
+      end
     end
 
     def save!
       # TODO: Add validation before writing user data to file
       user = {name: @name, email: @email, phone: @phone, password: @password}
-
-      File.open("#{File.expand_path(File.dirname(__FILE__))}/../../data/user.json", "w") do |f|
-        f.write JSON.generate(user)
-      end
+      
+        File.open("#{File.expand_path(File.dirname(__FILE__))}/../../data/user.json", "w") do |f|
+          f.write JSON.generate(user)
+        end
     end
+
   end
 end

@@ -1,0 +1,27 @@
+[
+  {
+    "driver" : "Budi",
+	"location" : [1,2]
+  },
+  {
+    "driver" : "Anna",
+	"location" : [-20,5]
+  },
+  {
+    "driver" : "Dore",
+	"location" : [14,34]
+  },
+  {
+    "driver" : "Mifa",
+	"location" : [24,25]
+  },
+  {
+    "driver" : "Sola",
+	"location" : [14,10]
+  },
+  {
+    "driver" : "Sido",
+	"location" : [21,35]
+  }
+
+]

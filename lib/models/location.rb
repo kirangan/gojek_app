@@ -14,6 +14,12 @@ module GoCLI
       data = JSON.parse(file)
       data
     end
+
+    def self.location_gojek
+      file = File.read("#{File.expand_path(File.dirname(__FILE__))}/../../data/fleet_location.json")
+      data = JSON.parse(file)
+      data
+    end
     
   end
 end

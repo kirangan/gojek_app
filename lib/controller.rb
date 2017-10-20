@@ -28,9 +28,12 @@ module GoCLI
         password: form[:password]
 
       )
-      user.save!
-
-      # Assigning form[:user] with user object
+      if user.validates == "true"
+        user.save!
+      else
+        form[:flash_msg] = "There is an empty string"
+        registration(form)
+      end
       form[:user] = user
 
       # Returning the form
@@ -42,8 +45,6 @@ module GoCLI
       while !halt
         clear_screen(opts)
         form = View.login(opts)
-        puts form
-
         # Check if user inputs the correct credentials in the login form
         if credential_match?(form[:user], form[:login], form[:password])
           halt = true
@@ -51,7 +52,6 @@ module GoCLI
           form[:flash_msg] = "Wrong login or password combination"
         end
       end
-
       return form
     end
     
@@ -99,8 +99,7 @@ module GoCLI
     def edit_profile(opts = {})
       clear_screen(opts)
       form = View.edit_profile(opts)
-     # puts form
-      
+
       case form[:steps].last[:option].to_i
       when 1
         user = User.new(
@@ -127,12 +126,17 @@ module GoCLI
       clear_screen(opts)
       form = View.order_goride(opts)
       form[:location_data]=Location.location_data
+      form[:location_gojek]=Location.location_gojek
+      
+      location_data = form[:location_data]
+
       point_1 = Hash.new(0)
       point_2 = Hash.new(0)
 
       location_length = nil
+      gojek_length = nil
 
-      form[:location_data].each do |x|
+      location_data.each do |x|
         if x.rassoc(form[:start])
           point_1 = x
         end
@@ -144,20 +148,36 @@ module GoCLI
       point_1_num = point_1.values[1]
       point_2_num = point_2.values[1]
 
+      gojek_lg_data = 0
+      gojek_point = nil
+
+      dd = form[:location_gojek]
+      dd.each do |x|
+        p = x.values.last
+        gojek_length = Math.sqrt(((point_1_num[0] - p[0])**2) + ((point_1_num[1] - p[1])**2)).to_f
+        if gojek_length <= 1.0
+          gojek_lg_data = gojek_length
+          gojek_point = p
+        end
+      end
+
       if (point_1.values == []) || (point_2.values == []) 
         form[:flash_msg] = "Sorry, the route is unavailable"
         order_goride(form)
       else
-        location_length = Math.sqrt(((point_2_num[0] - point_1_num[0])**2) + ((point_2_num[1] - point_1_num[1])**2)).to_f
-        form[:est_price] = (location_length * 1500).to_i
-        form[:timestamp] = DateTime.now
-        order_goride_confirm(form)
+        if gojek_lg_data == 0
+          form[:flash_msg] = "Sorry, the driver is not around"
+          order_goride(form)
+        else
+          gojek_point = point_1_num
+          location_length = Math.sqrt(((point_2_num[0] - gojek_point[0])**2) + ((point_2_num[1] - gojek_point[1])**2)).to_f
+          form[:est_price] = (location_length * 1500).to_i
+          form[:timestamp] = DateTime.now
+          order_goride_confirm(form)
+        end
       end
-
       form
-
     end
-
     # TODO: Complete order_goride_confirm method
     # This will be invoked after user finishes inputting data in order_goride method
 
@@ -176,9 +196,9 @@ module GoCLI
         order.save!
 
         form[:order] = order
+        form[:view_history]=Order.view_history
         form[:flash_msg] = "Have a nice day!"
-       # main_menu(form)
-        form
+        main_menu(form)
       when 2
         order_goride(form)
 
@@ -193,8 +213,7 @@ module GoCLI
     def view_order_history(opts = {})
       clear_screen(opts)
       form = View.view_order_history(opts)
-      #form[:view_history]=Order.view_history
-      
+
       case form[:steps].last[:option].to_i
       when 1
         main_menu(form)
@@ -202,9 +221,7 @@ module GoCLI
         form[:flash_msg] = "Wrong option entered, please retry."
         view_order_history(form)
       end
-
     end
-
     
     protected
       # You don't need to modify this 

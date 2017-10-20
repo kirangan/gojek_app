@@ -154,8 +154,16 @@ module GoCLI
       form = opts
       puts 'History'
       puts ''
-      #puts form
-      
+
+      history = form[:view_history]
+      history.each do |x|
+        x.each do |k,v|
+          puts "#{k}: #{v}"
+        end
+        puts ''
+      end
+ 
+      puts ''
       puts '1. Back'
 
       print 'Enter your option: '
