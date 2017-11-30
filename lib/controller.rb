@@ -4,6 +4,8 @@ require_relative './models/user'
 require_relative './models/location'
 require_relative './models/order'
 require_relative './view'
+require 'bundler/setup'
+require 'rdkafka'
 
 module GoCLI
   # Controller is a class that call corresponding models and methods for every action
@@ -16,26 +18,19 @@ module GoCLI
       # Second, we call our View and its class method called "registration"
       # Take a look at View class to see what this actually does
       form = View.registration(opts)
-
-      # This is the main logic of this method:
-      # - passing input form to an instance of User class (named "user")
-      # - invoke ".save!" method to user object
-      # TODO: enable saving name and email
       user = User.new(
         name: form[:name],
         email: form[:email],
         phone:    form[:phone],
         password: form[:password]
-
       )
       if user.validates == "true"
         user.save!
       else
-        form[:flash_msg] = "There is an empty string"
+        form[:flash_msg] = 'There is an empty string'
         registration(form)
       end
       form[:user] = user
-
       # Returning the form
       form
     end
@@ -49,7 +44,7 @@ module GoCLI
         if credential_match?(form[:user], form[:login], form[:password])
           halt = true
         else
-          form[:flash_msg] = "Wrong login or password combination"
+          form[:flash_msg] = 'Wrong login or password combination'
         end
       end
       return form
@@ -72,7 +67,7 @@ module GoCLI
       when 4
         exit(true)
       else
-        form[:flash_msg] = "Wrong option entered, please retry."
+        form[:flash_msg] = 'Wrong option entered, please retry.'
         main_menu(form)
       end
     end
@@ -80,8 +75,6 @@ module GoCLI
     def view_profile(opts = {})
       clear_screen(opts)
       form = View.view_profile(opts)
-
-
       case form[:steps].last[:option].to_i
       when 1
         # Step 4.1.1
@@ -89,7 +82,7 @@ module GoCLI
       when 2
         main_menu(form)
       else
-        form[:flash_msg] = "Wrong option entered, please retry."
+        form[:flash_msg] = 'Wrong option entered, please retry.'
         view_profile(form)
       end
     end
@@ -116,7 +109,7 @@ module GoCLI
       when 2
         view_profile(form)
       else
-        form[:flash_msg] = "Wrong option entered, please retry."
+        form[:flash_msg] = 'Wrong option entered, please retry.'
         edit_profile(form)
       end
     end
@@ -162,11 +155,11 @@ module GoCLI
       end
 
       if (point_1.values == []) || (point_2.values == []) 
-        form[:flash_msg] = "Sorry, the route is unavailable"
+        form[:flash_msg] = 'Sorry, the route is unavailable'
         order_goride(form)
       else
         if gojek_lg_data == 0
-          form[:flash_msg] = "Sorry, the driver is not around"
+          form[:flash_msg] = 'Sorry, the driver is not around'
           order_goride(form)
         else
           gojek_point = point_1_num
@@ -182,6 +175,20 @@ module GoCLI
     # This will be invoked after user finishes inputting data in order_goride method
 
     def order_goride_confirm(opts)
+      config = {
+          :"bootstrap.servers" => "velomobile-01.srvs.cloudkafka.com:9094, velomobile-02.srvs.cloudkafka.com:9094, velomobile-03.srvs.cloudkafka.com:9094",
+          :"group.id"          => "5jo12xr9-default",
+          :"sasl.username"     => "5jo12xr9",
+          :"sasl.password"     => "88E7crAvTmRujqokZeEhxXH-bBOahQ_y",
+          :"security.protocol" => "SASL_SSL",
+          :"sasl.mechanisms"   => "SCRAM-SHA-256"
+      }
+      topic = "5jo12xr9-default"
+
+      rdkafka = Rdkafka::Config.new(config)
+      producer = rdkafka.producer
+
+
       clear_screen(opts)  
       form = View.order_goride_confirm(opts)
       
@@ -194,10 +201,11 @@ module GoCLI
         est_price: form[:est_price]
         )
         order.save!
+        producer.produce(topic: topic, payload: order.origin, key: "Key")
 
         form[:order] = order
         form[:view_history]=Order.view_history
-        form[:flash_msg] = "Have a nice day!"
+        form[:flash_msg] = 'Have a nice day!'
         main_menu(form)
       when 2
         order_goride(form)
@@ -205,7 +213,7 @@ module GoCLI
       when 3
         main_menu(form)
       else 
-        form[:flash_msg] = "Wrong option entered, please retry."
+        form[:flash_msg] = 'Wrong option entered, please retry.'
         order_goride_confirm(form)
       end
     end
@@ -218,7 +226,7 @@ module GoCLI
       when 1
         main_menu(form)
       else
-        form[:flash_msg] = "Wrong option entered, please retry."
+        form[:flash_msg] = 'Wrong option entered, please retry.'
         view_order_history(form)
       end
     end

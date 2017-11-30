@@ -34,5 +34,6 @@ module GoCLI
       data = JSON.parse(file)
       data
     end
+
 	end
 end
